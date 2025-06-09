@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - railway_data:/app/repos
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - JWT_SECRET=your_jwt_secret_key_change_this_in_production
+      - JWT_EXPIRATION=24h
+      - RAILWAY_API_TOKEN=${RAILWAY_API_TOKEN}
+      - REPO_PATH=/app/repos
+      - MAX_CONCURRENT_DEPLOYS=3
+    restart: unless-stopped
+
+volumes:
+  railway_data:

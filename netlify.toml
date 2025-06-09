@@ -1,0 +1,16 @@
+[build]
+  command = "pnpm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--version"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[[headers]]
+  for = "/api/realtime"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Connection = "keep-alive"

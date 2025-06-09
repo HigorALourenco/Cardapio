@@ -1,0 +1,35 @@
+# Use a imagem oficial do Node.js
+FROM node:18-alpine AS base
+
+# Instalar pnpm
+RUN npm install -g pnpm@8.15.0
+
+# Definir diretório de trabalho
+WORKDIR /app
+
+# Copiar arquivos de configuração
+COPY package.json pnpm-lock.yaml* ./
+COPY .npmrc ./
+
+# Instalar dependências
+RUN pnpm install --frozen-lockfile --prod=false
+
+# Copiar código fonte
+COPY . .
+
+# Build da aplicação
+RUN pnpm run build
+
+# Remover dependências de desenvolvimento
+RUN pnpm prune --prod
+
+# Expor porta
+EXPOSE 3000
+
+# Definir variáveis de ambiente
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+
+# Comando para iniciar a aplicação
+CMD ["pnpm", "start"]

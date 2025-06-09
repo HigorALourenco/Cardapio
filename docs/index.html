@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Railway Deploy API - Documentação</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <style>
+    body {
+      padding-top: 2rem;
+      padding-bottom: 2rem;
+    }
+    .endpoint {
+      margin-bottom: 2rem;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      background-color: #f8f9fa;
+    }
+    .method {
+      font-weight: bold;
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    .method-get {
+      background-color: #0d6efd;
+      color: white;
+    }
+    .method-post {
+      background-color: #198754;
+      color: white;
+    }
+    .method-delete {
+      background-color: #dc3545;
+      color: white;
+    }
+    pre {
+      background-color: #212529;
+      color: #f8f9fa;
+      padding: 1rem;
+      border-radius: 0.25rem;
+      overflow-x: auto;
+    }
+    .nav-pills .nav-link.active {
+      background-color: #0d6efd;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="sticky-top pt-3">
+          <h4>Conteúdo</h4>
+          <nav class="nav flex-column nav-pills">
+            <a class="nav-link active" href="#intro">Introdução</a>
+            <a class="nav-link" href="#auth">Autenticação</a>
+            <a class="nav-link" href="#deploy">Deploy</a>
+            <a class="nav-link" href="#projects">Projetos</a>
+            <a class="nav-link" href="#health">Health Check</a>
+            <a class="nav-link" href="#examples">Exemplos</a>
+          </nav>
+        </div>
+      </div>
+      <div class="col-md-9">
+        <h1>Railway Deploy API</h1>
+        <p class="lead">API para automatizar deploys na Railway</p>
+        
+        <section id="intro" class="mb-5">
+          <h2>Introdução</h2>
+          <p>Esta API permite automatizar o processo de deploy na Railway através de chamadas HTTP. Você pode usá-la para integrar com sistemas CI/CD, criar painéis de controle personalizados ou automatizar deploys de qualquer forma.</p>
+          
+          <h3>Requisitos</h3>
+          <ul>
+            <li>Node.js 18 ou superior</li>
+            <li>Railway CLI instalado (será instalado automaticamente se não estiver presente)</li>
+            <li>Token de API da Railway (opcional, pode ser fornecido por chamada)</li>
+          </ul>
+        </section>
+        
+        <section id="auth" class="mb-5">
+          <h2>Autenticação</h2>
+          <p>A API usa autenticação JWT para proteger os endpoints. Você precisa obter um token antes de fazer chamadas aos endpoints protegidos.</p>
+          
+          <div class="endpoint">
+            <span class="method method-post">POST</span>
+            <code>/api/auth/login</code>
+            <p>Autenticar usuário e obter token JWT</p>
+            
+            <h5>Corpo da Requisição</h5>
+            <pre>
+{
+  "username": "admin",
+  "password": "admin123"
+}
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "id": "1",
+      "username": "admin",
+      "role": "admin"
+    }
+  }
+}
+            </pre>
+          </div>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/auth/validate</code>
+            <p>Validar token JWT</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": {
+    "valid": true,
+    "decoded": {
+      "id": "1",
+      "username": "admin",
+      "role": "admin",
+      "iat": 1625097357,
+      "exp": 1625183757
+    }
+  }
+}
+            </pre>
+          </div>
+        </section>
+        
+        <section id="deploy" class="mb-5">
+          <h2>Deploy</h2>
+          <p>Endpoints para gerenciar deploys na Railway</p>
+          
+          <div class="endpoint">
+            <span class="method method-post">POST</span>
+            <code>/api/deploy</code>
+            <p>Iniciar um novo deploy</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Corpo da Requisição</h5>
+            <pre>
+{
+  "repoUrl": "https://github.com/username/repo.git",
+  "branch": "main",
+  "token": "railway_token_here" // Opcional
+}
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "message": "Deploy iniciado com sucesso",
+  "data": {
+    "deployId": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "initiated"
+  }
+}
+            </pre>
+          </div>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/deploy/:deployId</code>
+            <p>Obter status de um deploy específico</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": {
+    "deployId": "550e8400-e29b-41d4-a716-446655440000",
+    "status": "completed",
+    "repoUrl": "https://github.com/username/repo.git",
+    "branch": "main",
+    "startTime": "2023-06-30T12:00:00.000Z",
+    "endTime": "2023-06-30T12:05:30.000Z",
+    "projectUrl": "example.railway.app",
+    "logs": [
+      "Repositório clonado com sucesso",
+      "Iniciando deploy na Railway...",
+      "Deploy concluído com sucesso. URL: example.railway.app"
+    ]
+  }
+}
+            </pre>
+          </div>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/deploy</code>
+            <p>Obter todos os deploys</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": [
+    {
+      "deployId": "550e8400-e29b-41d4-a716-446655440000",
+      "status": "completed",
+      "repoUrl": "https://github.com/username/repo.git",
+      "branch": "main",
+      "startTime": "2023-06-30T12:00:00.000Z",
+      "endTime": "2023-06-30T12:05:30.000Z",
+      "projectUrl": "example.railway.app"
+    },
+    {
+      "deployId": "550e8400-e29b-41d4-a716-446655440001",
+      "status": "deploying",
+      "repoUrl": "https://github.com/username/another-repo.git",
+      "branch": "develop",
+      "startTime": "2023-06-30T13:00:00.000Z"
+    }
+  ]
+}
+            </pre>
+          </div>
+          
+          <div class="endpoint">
+            <span class="method method-delete">DELETE</span>
+            <code>/api/deploy/:deployId</code>
+            <p>Limpar um deploy específico</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "message": "Deploy limpo com sucesso"
+}
+            </pre>
+          </div>
+        </section>
+        
+        <section id="projects" class="mb-5">
+          <h2>Projetos</h2>
+          <p>Endpoints para gerenciar projetos na Railway</p>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/projects</code>
+            <p>Listar projetos na Railway</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": [
+    "project-1",
+    "project-2",
+    "project-3"
+  ]
+}
+            </pre>
+          </div>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/projects/:projectId</code>
+            <p>Obter informações de um projeto específico</p>
+            
+            <h5>Headers</h5>
+            <pre>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+            </pre>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": {
+    "projectId": "project-1",
+    "info": "Project Name: My Project\nEnvironment: production\nStatus: Deployed\nURL: example.railway.app"
+  }
+}
+            </pre>
+          </div>
+        </section>
+        
+        <section id="health" class="mb-5">
+          <h2>Health Check</h2>
+          <p>Endpoints para verificar o status da API</p>
+          
+          <div class="endpoint">
+            <span class="method method-get">GET</span>
+            <code>/api/health</code>
+            <p>Verificar status da API</p>
+            
+            <h5>Resposta</h5>
+            <pre>
+{
+  "status": "success",
+  "data": {
+    "service": "railway-deploy-api",
+    "version": "1.0.0",
+    "uptime": 3600,
+    "timestamp": "2023-06-30T12:00:00.000Z",
+    "railwayCliInstalled": true
+  }
+}
+            </pre>
+          </div>
+        </section>
+        
+        <section id="examples" class="mb-5">
+          <h2>Exemplos</h2>
+          
+          <h3>Exemplo com cURL</h3>
+          <pre>
+# Autenticar e obter token
+curl -X POST http://localhost:3000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}'
+
+# Iniciar deploy
+curl -X POST http://localhost:3000/api/deploy \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -d '{"repoUrl": "https://github.com/username/repo.git", "branch": "main"}'
+
+# Verificar status do deploy
+curl -X GET http://localhost:3000/api/deploy/YOUR_DEPLOY_ID \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE"
+          </pre>
+          
+          <h3>Exemplo com JavaScript</h3>
+          <pre>
+// Autenticar e obter token
+async function login() {
+  const response = await fetch('http://localhost:3000/api/auth/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      username: 'admin',
+      password: 'admin123'
+    })
+  });
+  
+  const data = await response.json();
+  return data.data.token;
+}
+
+// Iniciar deploy
+async function startDeploy(token) {
+  const response = await fetch('http://localhost:3000/api/deploy', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    },
+    body: JSON.stringify({
+      repoUrl: 'https://github.com/username/repo.git',
+      branch: 'main'
+    })
+  });
+  
+  const data = await response.json();
+  return data.data.deployId;
+}
+
+// Verificar status do deploy
+async function checkDeployStatus(token, deployId) {
+  const response = await fetch(`http://localhost:3000/api/deploy/${deployId}`, {
+    headers: {
+      'Authorization': `Bearer ${token}`
+    }
+  });
+  
+  return await response.json();
+}
+
+// Exemplo de uso
+async function main() {
+  const token = await login();
+  const deployId = await startDeploy(token);
+  
+  // Verificar status a cada 5 segundos
+  const interval = setInterval(async () => {
+    const status = await checkDeployStatus(token, deployId);
+    console.log(`Status: ${status.data.status}`);
+    
+    if (status.data.status === 'completed' || status.data.status === 'failed') {
+      clearInterval(interval);
+      console.log('Deploy finalizado:', status.data);
+    }
+  }, 5000);
+}
+
+main().catch(console.error);
+          </pre>
+        </section>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
